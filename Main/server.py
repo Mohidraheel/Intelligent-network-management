@@ -125,5 +125,5 @@ def chat():
 
 
 if __name__ == '__main__':
-    print("🚀 ML-powered Network Management Server running at http://localhost:5000")
+    print("🚀 ML-powered Network Management Server running.")
     app.run(debug=True, port=5000)
