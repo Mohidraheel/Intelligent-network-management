@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Network Logs Summarizer</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Network Logs Summarizer</h1>
+
+    <div class="card">
+      <label for="fileInput" class="btn">Upload .txt logs</label>
+      <input id="fileInput" type="file" accept=".txt" style="display:none">
+      <button id="btnSample" class="btn">Load Sample Logs</button>
+      <button id="btnParse" class="btn">Parse Textarea</button>
+      <button id="btnSummary" class="btn">Show Summary</button>
+
+      <div class="muted">You may upload a .txt file where each line is a log entry.
+        Logs may include timestamps and severity like <code>2024-10-25 10:15:23 [CRITICAL] Router-01: message</code>
+      </div>
+
+      <textarea id="logsArea" placeholder="Paste logs here or upload a .txt file"></textarea>
+      <div id="status" class="status"></div>
+    </div>
+
+    <div class="card" id="summaryCard">
+      <h2>Summary</h2>
+      <div class="summary">
+        <div class="box">Total: <span id="total">0</span></div>
+        <div class="box">Critical: <span id="critical">0</span></div>
+        <div class="box">Warning: <span id="warning">0</span></div>
+        <div class="box">Info: <span id="info">0</span></div>
+      </div>
+
+      <h3>Critical Alerts</h3>
+      <div id="criticalList"><em>None</em></div>
+    </div>
+  </div>
+
+  <script>
+    const base = '';
+    const el = id => document.getElementById(id);
+
+    async function fetchSample(){
+      const res = await fetch(base + '/api/sample');
+      const data = await res.json();
+      el('logsArea').value = data.logs;
+      el('status').innerText = 'Sample loaded.';
+    }
+
+    async function parseTextarea(){
+      const logs = el('logsArea').value;
+      if(!logs.trim()){ alert('Please paste or load logs first'); return }
+      const res = await fetch(base + '/api/parse', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({logs}) });
+      const data = await res.json();
+      if(data.success) el('status').innerText = `Parsed ${data.total} lines.`; else el('status').innerText = JSON.stringify(data);
+    }
+
+    async function uploadFile(file){
+      const fd = new FormData();
+      fd.append('file', file);
+      el('status').innerText = 'Uploading...';
+      const res = await fetch(base + '/api/upload', { method: 'POST', body: fd });
+      const data = await res.json();
+      if(data.success){
+        el('status').innerText = `Uploaded and parsed ${data.total} lines.`;
+        // Optionally fetch the summary automatically
+        await showSummary();
+      } else {
+        el('status').innerText = data.error || JSON.stringify(data);
+      }
+    }
+
+    async function showSummary(){
+      const res = await fetch(base + '/api/summary');
+      const data = await res.json();
+      if(data.error){ el('status').innerText = data.error; return }
+      el('total').innerText = data.total;
+      el('critical').innerText = data.critical;
+      el('warning').innerText = data.warning;
+      el('info').innerText = data.info;
+
+      const list = data.critical_logs;
+      if(list && list.length){
+        el('criticalList').innerHTML = '<ul>' + list.map(x=>`<li><strong>${x.device}</strong>: ${x.message} <small>(${x.timestamp})</small></li>`).join('') + '</ul>'
+      } else el('criticalList').innerHTML = '<em>None</em>'
+    }
+
+    el('fileInput').addEventListener('change', e => {
+      const file = e.target.files[0];
+      if(!file) return;
+      if(!file.name.toLowerCase().endsWith('.txt')){ alert('Please select a .txt file'); return }
+      // Read the file into the textarea (optional) and upload
+      const reader = new FileReader();
+      reader.onload = function(ev){
+        el('logsArea').value = ev.target.result;
+      }
+      reader.readAsText(file);
+
+      uploadFile(file);
+    });
+
+    el('btnSample').addEventListener('click', fetchSample);
+    el('btnParse').addEventListener('click', parseTextarea);
+    el('btnSummary').addEventListener('click', showSummary);
+
+  </script>
+</body>
+</html>

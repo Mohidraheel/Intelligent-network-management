@@ -1,0 +1,13 @@
+
+body { font-family: Inter, Arial, sans-serif; background:#f4f6f8; color:#222 }
+.container { max-width:980px; margin:28px auto; padding:12px }
+.card { background:white; padding:16px; border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,0.06); margin-bottom:16px }
+.btn { display:inline-block; padding:8px 12px; margin-right:8px; background:#1976d2; color:white; border-radius:6px; cursor:pointer; border:none }
+.btn:hover{ opacity:0.95 }
+textarea { width:100%; height:220px; margin-top:12px; font-family: monospace; padding:12px; border-radius:8px; border:1px solid #e6e9ee }
+.status { margin-top:8px; color:#444 }
+.muted { color:#666; font-size:13px; margin-top:8px }
+.summary { display:flex; gap:12px; flex-wrap:wrap }
+.box { background:#fafafa; padding:8px 12px; border-radius:8px; border:1px solid #eee }
+
+
