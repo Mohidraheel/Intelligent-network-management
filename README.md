@@ -1,2 +1,2 @@
-# Intelligent-network-managemen
+# Intelligent-network-management
 5th semester Computer Networks Project
